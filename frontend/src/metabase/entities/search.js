@@ -35,8 +35,9 @@ export default createEntity({
               Object.keys(unsupported).join(", "),
           );
         }
+        const canonicalCollection = canonicalCollectionId(collection);
         return (await collectionList({
-          collection,
+          canonicalCollection,
           archived,
           model,
           namespace,
