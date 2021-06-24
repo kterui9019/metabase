@@ -5,9 +5,9 @@ import {
   popover,
   sidebar,
   visitQuestionAdhoc,
-} from "__support__/cypress";
-import { USER_GROUPS } from "__support__/cypress_data";
-import { SAMPLE_DATASET } from "__support__/cypress_sample_dataset";
+} from "__support__/e2e/cypress";
+import { USER_GROUPS } from "__support__/e2e/cypress_data";
+import { SAMPLE_DATASET } from "__support__/e2e/cypress_sample_dataset";
 
 const {
   ORDERS,
@@ -240,7 +240,7 @@ describe("scenarios > visualizations > drillthroughs > chart drill", () => {
     cy.findByText("Add filter").click();
 
     // Visualize: line
-    cy.findByText("Visualize").click();
+    cy.button("Visualize").click();
     cy.findByText("Visualization").click();
     cy.icon("line").click();
     cy.findByText("Done").click();

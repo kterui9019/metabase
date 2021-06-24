@@ -5,9 +5,10 @@ import {
   restore,
   selectDashboardFilter,
   expectedRouteCalls,
-} from "__support__/cypress";
+  modal,
+} from "__support__/e2e/cypress";
 
-import { SAMPLE_DATASET } from "__support__/cypress_sample_dataset";
+import { SAMPLE_DATASET } from "__support__/e2e/cypress_sample_dataset";
 
 const {
   ORDERS,
@@ -366,7 +367,7 @@ describe("scenarios > dashboard", () => {
     }
   });
 
-  it.skip("should cache filter results after the first DB call (metabase#13832)", () => {
+  it.skip("filter dropdown should not send request for values every time the widget is opened (metabase#16103)", () => {
     // In this test we're using already present dashboard ("Orders in a dashboard")
     const FILTER_ID = "d7988e02";
 
@@ -534,7 +535,7 @@ describe("scenarios > dashboard", () => {
     cy.findByRole("checkbox").should("have.attr", "aria-checked", "true");
   });
 
-  it.skip("user without data permissions should be able to use dashboard filter (metabase#15119)", () => {
+  it("user without data permissions should be able to use dashboard filter (metabase#15119)", () => {
     cy.createQuestion({
       name: "15119",
       query: { "source-table": 1 },
@@ -584,13 +585,9 @@ describe("scenarios > dashboard", () => {
         cy.get("fieldset")
           .contains("Category")
           .click();
+        cy.findByPlaceholderText("Search the list").type("Gizmo");
+        cy.button("Add filter").click();
 
-        cy.findByPlaceholderText("Enter some text")
-          .click()
-          .type("Gizmo", { delay: 10 });
-        cy.findByRole("button", { name: "Add filter" })
-          .should("not.be.disabled")
-          .click();
         cy.contains("Rustic Paper Wallet");
       });
     });
@@ -728,7 +725,7 @@ describe("scenarios > dashboard", () => {
       popover()
         .findByText("Organic")
         .click();
-      cy.findByRole("button", { name: "Add filter" }).click();
+      cy.button("Add filter").click();
       // Check that the search works
       cy.get("fieldset")
         .contains("Search")
@@ -837,7 +834,7 @@ describe("scenarios > dashboard", () => {
       .contains("CA");
   });
 
-  it.skip("dashboard filters should not limit the number of search results (metabase#15695)", () => {
+  it("dashboard filters should not limit the number of search results (metabase#15695)", () => {
     // Change filtering on this field to "a list of all values"
     cy.request("PUT", `/api/field/${PRODUCTS.TITLE}`, {
       has_field_values: "list",
@@ -892,6 +889,36 @@ describe("scenarios > dashboard", () => {
     cy.get("fieldset").click();
     cy.findByPlaceholderText("Search the list").type("Syner");
     cy.findByText("Synergistic Wool Coat");
+  });
+
+  it.skip("should show values of added dashboard card via search immediately (metabase#15959)", () => {
+    /**
+     * For the reason I don't udnerstand, I could reproduce this issue ONLY if I use these specific functions in this order:
+     *  1. realType()
+     *  2. type()
+     */
+    cy.visit("/dashboard/1");
+    cy.icon("pencil").click();
+    cy.icon("add")
+      .last()
+      .as("addQuestion")
+      .click();
+    cy.icon("search")
+      .last()
+      .as("searchModal")
+      .click();
+    cy.findByPlaceholderText("Search").realType("Orders{enter}"); /* [1] */
+    modal()
+      .findByText("Orders, Count")
+      .realClick();
+    cy.get("@addQuestion").click();
+    cy.get("@searchModal").click();
+    cy.findByPlaceholderText("Search").type("Orders{enter}"); /* [2] */
+    modal()
+      .findByText("Orders, Count")
+      .realClick();
+    cy.get(".LoadingSpinner").should("not.exist");
+    cy.findAllByText("18,760").should("have.length", 2);
   });
 });
 

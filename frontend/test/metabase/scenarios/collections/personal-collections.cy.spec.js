@@ -1,6 +1,6 @@
 import _ from "underscore";
-import { restore, popover, modal } from "__support__/cypress";
-import { USERS } from "__support__/cypress_data";
+import { restore, popover, modal } from "__support__/e2e/cypress";
+import { USERS } from "__support__/e2e/cypress_data";
 import { getSidebarCollectionChildrenFor } from "./utils";
 
 describe("personal collections", () => {
@@ -137,7 +137,7 @@ describe("personal collections", () => {
           popover()
             .findByText("My personal collection") /* [3] */
             .click();
-          cy.findByRole("button", { name: "Update" }).click();
+          cy.button("Update").click();
           // Clicking on "Foo" would've closed it and would hide its sub-collections (if there were any).
           // By doing this, we're making sure "Bar" lives at the same level as "Foo"
           cy.get("@sidebar")

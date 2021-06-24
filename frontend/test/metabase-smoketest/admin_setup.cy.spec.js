@@ -3,14 +3,14 @@ import {
   popover,
   restore,
   setupLocalHostEmail,
-} from "__support__/cypress";
-import { USERS } from "__support__/cypress_data";
+} from "__support__/e2e/cypress";
+import { USERS } from "__support__/e2e/cypress_data";
 
 const { admin, normal, nocollection, nodata } = USERS;
 const new_user = {
   first_name: "Barb",
   last_name: "Tabley",
-  email: "new@metabase.com",
+  email: "new@metabase.test",
 };
 
 describe("smoketest > admin_setup", () => {
@@ -85,7 +85,6 @@ describe("smoketest > admin_setup", () => {
       cy.findByText("Slack").click();
 
       cy.findByText("Answers sent right to your Slack #channels");
-      cy.findByText("metabase@metabase.com").should("not.exist");
 
       cy.findByText("Create a Slack Bot User for MetaBot");
       cy.contains(
@@ -478,7 +477,7 @@ describe("smoketest > admin_setup", () => {
         .last()
         .click();
       cy.findByText("Add filter").click();
-      cy.findByText("Visualize").click();
+      cy.button("Visualize").click();
 
       cy.findAllByText("Awesome Concrete Shoes");
       cy.findByText("Mediocre Wooden Bench").should("not.exist");
@@ -930,40 +929,38 @@ describe("smoketest > admin_setup", () => {
       cy.findByText("Sorry, you don’t have permission to see that.");
     });
 
-    it("should deactivate a user admin and subsequently user should be unable to login", () => {
-      // Admin deactiviates user
+    it("user should not be able to login after admin deactivated them", () => {
+      const FULL_NAME = normal.first_name + " " + normal.last_name;
 
       cy.signOut();
       cy.signInAsAdmin();
-      cy.visit("/admin/settings/setup");
 
+      cy.visit("/admin/settings/setup");
       cy.findByText("People").click();
-      cy.icon("ellipsis")
-        .eq(-2)
-        .click();
+
+      openEllipsisMenuForUser(FULL_NAME);
       cy.findByText("Deactivate user").click();
 
-      cy.findByText("Robert Tableton won't be able to log in anymore.");
-
-      cy.findByText("Deactivate").click();
-
-      cy.findByText(normal.first_name + " " + normal.last_name).should(
-        "not.exist",
-      );
-      cy.findByText(new_user.first_name + " " + new_user.last_name);
+      cy.findByText(`${FULL_NAME} won't be able to log in anymore.`);
+      cy.button("Deactivate").click();
+      cy.findByText(FULL_NAME).should("not.exist");
 
       // User tries to log in
-
       cy.signOut();
       cy.visit("/");
       cy.findByLabelText("Email address").type(normal.email);
       cy.findByLabelText("Password").type(normal.password);
-      cy.findByText("Sign in").click();
+      cy.button("Sign in").click();
 
-      cy.contains(normal.first_name).should("not.exist");
-      cy.findByText("Our Analytics").should("not.exist");
       cy.findByText("Failed");
-      cy.contains("Password : did not match stored password");
+      cy.contains("Password: did not match stored password");
     });
   });
 });
+
+function openEllipsisMenuForUser(user) {
+  cy.findByText(user)
+    .closest("tr")
+    .find(".Icon-ellipsis")
+    .click();
+}

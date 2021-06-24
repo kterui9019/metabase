@@ -6,9 +6,9 @@ import {
   popover,
   modal,
   visitQuestionAdhoc,
-} from "__support__/cypress";
+} from "__support__/e2e/cypress";
 
-import { SAMPLE_DATASET } from "__support__/cypress_sample_dataset";
+import { SAMPLE_DATASET } from "__support__/e2e/cypress_sample_dataset";
 
 const {
   ORDERS,
@@ -37,7 +37,7 @@ describe("scenarios > question > notebook", () => {
     cy.findByText("Not now").click();
     // enter "notebook" and visualize without changing anything
     cy.icon("notebook").click();
-    cy.findByText("Visualize").click();
+    cy.button("Visualize").click();
 
     // there were no changes to the question, so we shouldn't have the option to "Save"
     cy.findByText("Save").should("not.exist");
@@ -99,7 +99,7 @@ describe("scenarios > question > notebook", () => {
       .click()
       .clear()
       .type("contains([Category])", { delay: 50 });
-    cy.findAllByRole("button", { name: "Done" })
+    cy.button("Done")
       .should("not.be.disabled")
       .click();
     cy.contains(/^Function contains expects 2 arguments/i);
@@ -125,7 +125,7 @@ describe("scenarios > question > notebook", () => {
       .click()
       .clear()
       .type("[Price] > 1");
-    cy.findAllByRole("button", { name: "Done" }).click();
+    cy.button("Done").click();
 
     // change the corresponding custom expression
     cy.findByText("Price is greater than 1").click();
@@ -204,7 +204,7 @@ describe("scenarios > question > notebook", () => {
           }
         });
       cy.findByText("wolf.dina@yahoo.com").click();
-      cy.findByRole("button", { name: "Add filter" }).click();
+      cy.button("Add filter").click();
       cy.contains("Showing 1 row");
     });
 
@@ -231,7 +231,7 @@ describe("scenarios > question > notebook", () => {
       popover().within(() => cy.findByText("A_COLUMN").click());
       popover().within(() => cy.findByText("B_COLUMN").click());
 
-      cy.findByText("Visualize").click();
+      cy.button("Visualize").click();
       cy.queryByText("Visualize").then($el => cy.wrap($el).should("not.exist")); // wait for that screen to disappear to avoid "multiple elements" errors
 
       // check that query worked
@@ -249,7 +249,7 @@ describe("scenarios > question > notebook", () => {
     // NOTE: - This repro is really tightly coupled to the `joinTwoSavedQuestions()` function.
     //       - Be extremely careful when changing any of the steps within that function.
     //       - The alternative approach would have been to write one longer repro instead of two separate ones.
-    it.skip("joined questions should create custom column (metabase#13649)", () => {
+    it("joined questions should create custom column (metabase#13649)", () => {
       // pass down a joined question alias
       joinTwoSavedQuestions("13649");
 
@@ -259,19 +259,18 @@ describe("scenarios > question > notebook", () => {
       popover().within(() => {
         cy.get("[contenteditable='true']").type(
           // reference joined question by previously set alias
-          "[13649 → Sum of Rating] / [Sum of Rating]",
+          "[13649 → sum] / [Sum of Rating]",
         );
         cy.findByPlaceholderText("Something nice and descriptive")
           .click()
           .type("Sum Divide");
 
-        cy.findAllByRole("button")
-          .contains("Done")
+        cy.button("Done")
           .should("not.be.disabled")
           .click();
       });
       cy.route("POST", "/api/dataset").as("visualization");
-      cy.findByText("Visualize").click();
+      cy.button("Visualize").click();
 
       cy.wait("@visualization").then(xhr => {
         expect(xhr.response.body.error).not.to.exist;
@@ -311,7 +310,7 @@ describe("scenarios > question > notebook", () => {
       });
     });
 
-    it.skip("should join saved questions that themselves contain joins (metabase#12928)", () => {
+    it("should join saved questions that themselves contain joins (metabase#12928)", () => {
       // Save Question 1
       cy.createQuestion({
         name: "12928_Q1",
@@ -390,7 +389,7 @@ describe("scenarios > question > notebook", () => {
       popover()
         .contains(/Products? → Category/)
         .click();
-      cy.findByText("Visualize").click();
+      cy.button("Visualize").click();
 
       cy.findByText("12928_Q1 + 12928_Q2");
       cy.log("Reported failing in v1.35.4.1 and `master` on July, 16 2020");
@@ -661,7 +660,7 @@ describe("scenarios > question > notebook", () => {
         .click();
       cy.findByText("Greater than").click();
       cy.findByPlaceholderText("Enter a number").type(0);
-      cy.findByRole("button", { name: "Add filter" })
+      cy.button("Add filter")
         .should("not.be.disabled")
         .click();
     });
@@ -695,11 +694,11 @@ describe("scenarios > question > notebook", () => {
       cy.findByText("Add filters to narrow your answer")
         .as("filter")
         .click();
-      popover().isInViewport();
+      popover().isRenderedWithinViewport();
       // Click anywhere outside this popover to close it because the issue with rendering happens when popover opens for the second time
       cy.icon("gear").click();
       cy.get("@filter").click();
-      popover().isInViewport();
+      popover().isRenderedWithinViewport();
     });
 
     it("popover should not cover the button that invoked it (metabase#15502-2)", () => {
@@ -736,7 +735,7 @@ describe("scenarios > question > notebook", () => {
         cy.findByText("Add filter").click();
       });
 
-      cy.findByText("Visualize").click();
+      cy.button("Visualize").click();
       cy.findByText("Gadget").should("exist");
       cy.findByText("Gizmo").should("not.exist");
 
@@ -773,11 +772,11 @@ describe("scenarios > question > notebook", () => {
         .click()
         .type("Example", { delay: 100 });
 
-      cy.findAllByRole("button", { name: "Done" })
+      cy.button("Done")
         .should("not.be.disabled")
         .click();
 
-      cy.findAllByRole("button", { name: "Visualize" }).click();
+      cy.button("Visualize").click();
       cy.contains("Example");
       cy.contains("Big");
       cy.contains("Small");
@@ -794,11 +793,11 @@ describe("scenarios > question > notebook", () => {
 
       cy.contains(/^redundant input/i).should("not.exist");
 
-      cy.findAllByRole("button", { name: "Done" })
+      cy.button("Done")
         .should("not.be.disabled")
         .click();
 
-      cy.findAllByRole("button", { name: "Visualize" }).click();
+      cy.button("Visualize").click();
       cy.contains("Showing 97 rows");
     });
 
@@ -825,11 +824,11 @@ describe("scenarios > question > notebook", () => {
         cy.contains(/^expected closing parenthesis/i).should("not.exist");
         cy.contains(/^redundant input/i).should("not.exist");
 
-        cy.findAllByRole("button", { name: "Done" })
+        cy.button("Done")
           .should("not.be.disabled")
           .click();
 
-        cy.findAllByRole("button", { name: "Visualize" }).click();
+        cy.button("Visualize").click();
         cy.contains(filter);
         cy.contains(result);
       });
@@ -888,7 +887,7 @@ function joinTwoSavedQuestions(ALIAS = "Joined Question") {
         cy.log("Reported in v0.36.0");
         cy.icon("notebook").click();
         cy.url().should("contain", "/notebook");
-        cy.findByText("Visualize").should("exist");
+        cy.button("Visualize").should("exist");
       });
     });
   });

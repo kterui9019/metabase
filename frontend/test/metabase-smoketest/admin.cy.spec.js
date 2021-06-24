@@ -1,12 +1,12 @@
 import path from "path";
-import { restore, sidebar } from "__support__/cypress";
-import { USERS } from "__support__/cypress_data";
+import { restore, sidebar } from "__support__/e2e/cypress";
+import { USERS } from "__support__/e2e/cypress_data";
 
 const { admin } = USERS;
 const new_user = {
   first_name: "Barb",
   last_name: "Tabley",
-  email: "new@metabase.com",
+  email: "new@metabase.test",
 };
 
 describe("metabase-smoketest > admin", () => {
@@ -168,7 +168,7 @@ describe("metabase-smoketest > admin", () => {
 
       cy.findByText("Join data").click();
       cy.findByText("People").click();
-      cy.findByText("Visualize").click();
+      cy.button("Visualize").click();
 
       // Summarize by State
       cy.findAllByText("Summarize")
